@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:uno",
+    "sketch": "5_servo_dht\\5_servo_dht.ino",
+    "port": "COM6"
+}
