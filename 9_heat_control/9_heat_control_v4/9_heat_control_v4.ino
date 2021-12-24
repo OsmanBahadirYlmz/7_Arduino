@@ -3,15 +3,13 @@
 #include <FaBoLCD_PCF8574.h>
 FaBoLCD_PCF8574 lcd;
 
-#include <Adafruit_Sensor.h>
 #include <DHT.h>
-#include <DHT_U.h>
 #define DHTPIN 2 
 #define DHTTYPE    DHT11 
 DHT dht(DHTPIN, DHTTYPE);
-uint32_t delayMS;
 
-//wifi eklentilerli
+
+//wifi eklentileri
 #include <SoftwareSerial.h>
 String agAdi="TURKSAT-KABLONET-70A3-2.4G";
 String agSifresi="d12e9410";
@@ -32,10 +30,15 @@ const int LED_GREEN=8; //Green LED
 const int RELAY=12; //Lock Relay or motor
 const int up_key=7;
 const int down_key=6;
-// #define up_key 8
-// #define down_key 7
-// #define LED_RED 9
-// #define LED_GREEN 8
+
+double T=20; //sensörden ölçülen anlık sıcaklık null olabilir
+double T0=20;//anlık sıcaklık null değil
+double T1=20.5; //son 60 (num readings)çlçüm ortalaması
+double T2=20.6; // son 10(numreadings2) çlçüm ortalaması
+int step1=10; //step size for inc
+int pos=90;
+double H;
+
 int SetPoint=25;
 unsigned long currentMillis=0;
 unsigned long previousMillis = 0;        // will store last time LED was updated
@@ -43,16 +46,9 @@ const long interval = 1000;              //ortalama sıcaklık hesaplama süresi
 unsigned long previousMillis2 = 0;        // will store last time LED was updated
 const long interval2 = 10000;          //wait time before make new action
 
-double T=20; //sensörden ölçülen anlık sıcaklık null olabilir
-double T0=20;//anlık sıcaklık null değil
-double T1=20.5;//interval önceki sıcaklık
-double T2=20.6;
-int step1=10; //step size for inc
-int step2=20;
-int pos=90;
 
 
-//ortalama sıcaklık için 
+//ortalama sıcaklık için T1 hesaplama
 
 const int numReadings = 60;
 double readings[numReadings];      // array the readings from the analog input
@@ -60,6 +56,7 @@ int readIndex = 0;              // the index of the current reading
 double average = 20.5;  
 double total = numReadings*average;// the running total
 
+//Ortalama sıcaklık için T2 hesaplama
 const int numReadings2 = 10;
 double readings2[numReadings2];      // 2. sayaç
 int readIndex2 = 0;              // 2.sayaç
@@ -85,13 +82,14 @@ digitalWrite(down_key,HIGH);
 Serial.begin(9600);
 
 lcd.begin(16, 2);
+
 // Print a message to the LCD.
 lcd.print("oby");
 lcd.setCursor(0, 1);
-lcd.print("v3");
+lcd.print("v4");
 
 dht.begin();
-sensor_t sensor;
+
 
 digitalWrite(LED_GREEN,HIGH);  //Green LED Off
 digitalWrite(LED_RED,LOW);     //Red LED On
@@ -216,6 +214,7 @@ Serial.println("------------");
 
 //read temparature and chack is null
 T=dht.readTemperature();
+H=dht.readHumidity();
 if(T<50 && T>-30) T0=T;
 
 currentMillis = millis();
@@ -249,22 +248,7 @@ currentMillis = millis();
 
 
   }
-
-//lcd ön işlem
-  lcd.setCursor(0,0);
-  lcd.print("oda:");    //Do not display entered keys
-  lcd.setCursor(4,0);
-  lcd.print(T0); 
-  lcd.setCursor(10,0);
-  lcd.print(T2); 
-  lcd.setCursor(15,0);
-   if (T2>T1) lcd.print("+");
-  if (T1>T2) lcd.print("-");
-  {
-    /* code */
-  }
-  
-  
+ 
  
   //Get user input for setpoints  
   if(digitalRead(down_key)==1)
@@ -283,7 +267,16 @@ currentMillis = millis();
   }
 
 
- //Display Set point on LCD
+ //Display Set point on LCD/ lcd values
+  lcd.setCursor(0,0);
+  lcd.print("oda:");    
+  lcd.setCursor(4,0);
+  lcd.print(T0); 
+  lcd.setCursor(10,0);
+  lcd.print(T2); 
+  lcd.setCursor(15,0);
+  if (T2>T1) lcd.print("+");
+  if (T1>T2) lcd.print("-");
   lcd.setCursor(0,1);
   lcd.print("set:");
   lcd.print(SetPoint);
@@ -349,8 +342,8 @@ if (currentMillis - previousMillis3 >= interval3)
   String veri = "GET https://api.thingspeak.com/update?api_key=VAWRNI7PQE6P7RJN";   //Thingspeak komutu. Key kısmına kendi api keyimizi yazıyoruz.                                   //Göndereceğimiz sıcaklık değişkeni
   veri += "&field1=";
   veri += String(T0);
- //veri += "&field2=";
- // veri += String(nem);                                        //Göndereceğimiz nem değişkeni
+  veri += "&field2=";
+  veri += String(H);                                        //Göndereceğimiz nem değişkeni
   veri += "\r\n\r\n"; 
   esp.print("AT+CIPSEND=");                                   //ESP'ye göndereceğimiz veri uzunluğunu veriyoruz.
   esp.println(veri.length()+2);
