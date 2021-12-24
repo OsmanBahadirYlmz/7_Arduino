@@ -26,12 +26,13 @@ const int down_key=6;
 // #define LED_GREEN 8
 int SetPoint=25;
 unsigned long previousMillis = 0;        // will store last time LED was updated
-const long interval = 500;              //ortalama sıcaklık hesaplama süresi
+const long interval = 1000;              //ortalama sıcaklık hesaplama süresi
 unsigned long previousMillis2 = 0;        // will store last time LED was updated
-const long interval2 = 2000;
+const long interval2 = 10000;          //wait time before make new action
 
-double T1=0;//interval önceki sıcaklık
-double T2=0;
+double T0=20;//anlık sıcaklık
+double T1=20.5;//interval önceki sıcaklık
+double T2=20.6;
 int step1=10; //step size for inc
 int step2=20;
 int pos=90;
@@ -39,17 +40,17 @@ int pos=90;
 
 //ortalama sıcaklık için 
 
-const int numReadings = 30;
-int readings[numReadings];      // the readings from the analog input
-int readIndex = 0;              // the index of the current reading
-int total = numReadings*20;                  // the running total
-int average = 20;  
+const int numReadings = 60;
+double readings[numReadings];      // array the readings from the analog input
+int readIndex = 0;              // the index of the current reading                 
+double average = 20.5;  
+double total = numReadings*average;// the running total
 
-const int numReadings2 = 3;
-int readings2[numReadings2];      // 2. sayaç
+const int numReadings2 = 10;
+double readings2[numReadings2];      // 2. sayaç
 int readIndex2 = 0;              // 2.sayaç
-int total2 = numReadings2*20;                  // 2.sayaç
-int average2 = 20;  
+double average2 = 20.7; 
+double total2 = numReadings2*average2;                  // 2.sayaç 
 //test-----------------------
 int a=0;
 
@@ -96,8 +97,39 @@ Myservo.attach(10);
 
 }
 
+void Turnoff(){
+ Myservo.write(0);
+ delay(3000);
+  
+   digitalWrite(RELAY,LOW);    //Turn off heater
+   digitalWrite(LED_RED,LOW);
+   digitalWrite(LED_GREEN,HIGH);  //Turn on Green LED
+
+}
+
+void Turnon(){
 
 
+ Myservo.write(170);
+ delay(3000);
+  
+  digitalWrite(RELAY,HIGH);    //Turn on heater %100
+  digitalWrite(LED_GREEN,LOW);
+  digitalWrite(LED_RED,HIGH);  //Turn on RED LED  
+
+}
+
+
+void servopos(int position){
+    Serial.print("servopos cagirildi---+++--+++---:");Serial.println(position);
+    Myservo.write(position);
+    delay(2000);
+    digitalWrite(RELAY,HIGH);    //Turn on heater %50
+    digitalWrite(LED_GREEN,HIGH);
+    digitalWrite(LED_RED,HIGH);  //Turn on RED LED 
+    
+
+}
 
 
 void loop() {
@@ -133,30 +165,65 @@ void loop() {
 // lcd.print(hum);
 // Serial.println(temp);
 // Serial.println(hum);
+Serial.print("pos");Serial.println(pos);
+Serial.print("T0");Serial.println(T0);
+Serial.print("total");Serial.println(total);
+Serial.print("T1");Serial.println(T1);
+Serial.print("readings");
+for (int i = 0; i < 30; i++) Serial.print(readings[i]);
+Serial.println("------------");
+
+
 // test sonu------------------
 
-double T0=dht.readTemperature();
+T0=dht.readTemperature();
 
 unsigned long currentMillis = millis();
- if (currentMillis - previousMillis >= interval) {
 
-    previousMillis = currentMillis;
-
-   
+//Ortalama sıcaklık T1 array hesaplama
+ if (currentMillis - previousMillis >= interval) 
+ {
+  Serial.print("calc_t1 cagirildi read index:");Serial.println(readIndex);
+  previousMillis = currentMillis;  
   total = total - readings[readIndex];
   readings[readIndex] = T0;
   total = total + readings[readIndex];
   readIndex = readIndex + 1;
   if (readIndex >= numReadings) 
-  {
-    readIndex = 0;
-  }
-T1 = total / numReadings;
- }
+    {
+      readIndex = 0;
+    }
+  T1 = float(total) / float(numReadings);
+//ortalama sıcaklık için t2 hesaplama. anlık karar verdiği için hesaplandı
+  Serial.print("calc_t2 cagirildi read index:");Serial.println(readIndex2);
+  previousMillis = currentMillis;  
+  total2 = total2 - readings2[readIndex2];
+  readings2[readIndex2] = T0;
+  total2 = total2 + readings2[readIndex2];
+  readIndex2 = readIndex2 + 1;
+  if (readIndex2 >= numReadings2) 
+    {
+      readIndex2 = 0;
+    }
+  T2 = float(total2) / float(numReadings2);
 
+
+  }
+
+//lcd ön işlem
   lcd.setCursor(0,0);
-  lcd.print("sicaklik:");    //Do not display entered keys
-  lcd.print(T0);
+  lcd.print("oda:");    //Do not display entered keys
+  lcd.setCursor(4,0);
+  lcd.print(T0); 
+  lcd.setCursor(10,0);
+  lcd.print(T2); 
+  lcd.setCursor(15,0);
+   if (T2>T1) lcd.print("+");
+  if (T1>T2) lcd.print("-");
+  {
+    /* code */
+  }
+  
   
  
   //Get user input for setpoints  
@@ -174,49 +241,61 @@ T1 = total / numReadings;
       SetPoint++;
     }
   }
+
+
  //Display Set point on LCD
   lcd.setCursor(0,1);
-  lcd.print("ayar:");
+  lcd.print("set:");
   lcd.print(SetPoint);
-  lcd.print("C / T1");
-  lcd.setCursor(12,1);
+  lcd.print(" T1:");
+  lcd.setCursor(11,1);
   lcd.print(T1);
 
 
-//Check T0 is in limit
-if(T0 > (SetPoint+4))
-{
-  Myservo.write(0);
-  pos=20;
-   digitalWrite(RELAY,LOW);    //Turn off heater
-   digitalWrite(LED_RED,LOW);
-   digitalWrite(LED_GREEN,HIGH);  //Turn on Green LED
-}
-else if (T0<(SetPoint-4))
-{
-  Myservo.write(170);
-  pos=90;
-  digitalWrite(RELAY,HIGH);    //Turn on heater %100
-  digitalWrite(LED_GREEN,LOW);
-  digitalWrite(LED_RED,HIGH);  //Turn on RED LED  
-}
+//Check T2 is in limit
+if(T2 > (SetPoint+4)) 
+  {
+  Turnoff();
+  }
+else if (T2<(SetPoint-4))
+  {
+  Turnon();
+  }
 
-//
-else if (T0>(SetPoint-4)& T0<(SetPoint+4)& (currentMillis - previousMillis2 >= interval2) )
-{
-  if (T1<T0)
-  {pos=(pos-step1);}
-  else if (T1>T0)
-  {pos = (pos+step1);}
-  
-  Myservo.write(pos);
-  digitalWrite(RELAY,HIGH);    //Turn on heater %50
-  digitalWrite(LED_GREEN,LOW);
-  digitalWrite(LED_RED,HIGH);  //Turn on RED LED 
-   previousMillis2 = currentMillis;
-   
-}
- 
+
+//AKILLI KARŞILAŞTIRMA
+//eğer oda istenenden biraz sıcaksa
+if ((T2>(SetPoint)) && (currentMillis - previousMillis2 >= interval2) )
+  {
+    //ve oda ısınıyorsa
+    if ((T1<T2)&&(pos>step1))
+    {     
+        pos=(pos-step1);   
+        Serial.print("biraz sicak");Serial.println(pos);
+        servopos(pos) ;
+
+    }
+    //ve oda soğuyorsa
+    
+    previousMillis2 = currentMillis;
+  }
+
+  //eğer oda istenenden biraz soğuksa
+if ( (T2<SetPoint) && (currentMillis - previousMillis2 >= interval2) )
+  {
+   //VE ODA SOĞUYORSA
+    if ((T1>T2)&&(pos<170))
+    {
+      pos = (pos+step1);
+      Serial.print("biraz soguk");Serial.println(pos);
+      servopos(pos);
+    }
+    
+    previousMillis2 = currentMillis;
+  }
+
+
+
   delay(100); //Update at every 
   
 }
