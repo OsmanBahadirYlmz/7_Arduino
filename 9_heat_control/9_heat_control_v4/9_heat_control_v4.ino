@@ -33,8 +33,8 @@ const int down_key=6;
 
 double T=20; //sensörden ölçülen anlık sıcaklık null olabilir
 double T0=20;//anlık sıcaklık null değil
-double T1=20.5; //son 60 (num readings)çlçüm ortalaması
-double T2=20.6; // son 10(numreadings2) çlçüm ortalaması
+double T1=20; //son 60 (num readings)çlçüm ortalaması
+double T2=20; // son 10(numreadings2) çlçüm ortalaması
 int step1=10; //step size for inc
 int pos=90;
 double H;
@@ -53,14 +53,14 @@ const long interval2 = 10000;          //wait time before make new action
 const int numReadings = 60;
 double readings[numReadings];      // array the readings from the analog input
 int readIndex = 0;              // the index of the current reading                 
-double average = 20.5;  
+double average = 20;  
 double total = numReadings*average;// the running total
 
 //Ortalama sıcaklık için T2 hesaplama
 const int numReadings2 = 10;
 double readings2[numReadings2];      // 2. sayaç
 int readIndex2 = 0;              // 2.sayaç
-double average2 = 20.7; 
+double average2 = 20; 
 double total2 = numReadings2*average2;                  // 2.sayaç 
 //test-----------------------
 int a=0;
@@ -86,7 +86,7 @@ lcd.begin(16, 2);
 // Print a message to the LCD.
 lcd.print("oby");
 lcd.setCursor(0, 1);
-lcd.print("v4");
+lcd.print("v5");
 
 dht.begin();
 
@@ -123,7 +123,8 @@ Serial.println("Started");
   esp.println("AT+CWJAP=\""+agAdi+"\",\""+agSifresi+"\"");    //Ağımıza bağlanıyoruz.
   while(!esp.find("OK"));                                     //Ağa bağlanana kadar bekliyoruz.
   Serial.println("Aga Baglandi.");
-
+  lcd.setCursor(0, 1);
+  lcd.print("ag ok!");
 
 
  delay(2000);
@@ -203,7 +204,7 @@ Serial.print("T0");Serial.println(T0);
 Serial.print("total");Serial.println(total);
 Serial.print("T1");Serial.println(T1);
 Serial.print("readings");
-for (int i = 0; i < 30; i++) Serial.print(readings[i]);
+for (int i = 0; i < numReadings; i++) Serial.print(readings[i]);
 // Serial.print("currentmilis:");Serial.println(currentMillis);
 // Serial.print("cm-previousMilis T1 hesaplama:");Serial.println(currentMillis - previousMillis);
 // Serial.print("cm-previousMilis2:");Serial.println(currentMillis - previousMillis2);
@@ -228,7 +229,7 @@ currentMillis = millis();
   readings[readIndex] = T0;
   total = total + readings[readIndex];
   readIndex = readIndex + 1;
-  if (readIndex >= numReadings) 
+  if (readIndex == (numReadings)) 
     {
       readIndex = 0;
     }
@@ -240,7 +241,7 @@ currentMillis = millis();
   readings2[readIndex2] = T0;
   total2 = total2 + readings2[readIndex2];
   readIndex2 = readIndex2 + 1;
-  if (readIndex2 >= numReadings2) 
+  if (readIndex2 == (numReadings2)) 
     {
       readIndex2 = 0;
     }
@@ -275,8 +276,10 @@ currentMillis = millis();
   lcd.setCursor(10,0);
   lcd.print(T2); 
   lcd.setCursor(15,0);
-  if (T2>T1) lcd.print("+");
-  if (T1>T2) lcd.print("-");
+  if (T2>T1+0.3) lcd.print("+");
+  else if (T1>T2+0.3) lcd.print("-");
+  else lcd.print("=");
+
   lcd.setCursor(0,1);
   lcd.print("set:");
   lcd.print(SetPoint);
@@ -298,10 +301,11 @@ else if (T2<(SetPoint-4))
 
 //AKILLI KARŞILAŞTIRMA
 //eğer oda istenenden biraz sıcaksa
+
 if ((T2>(SetPoint)) && (currentMillis - previousMillis2 >= interval2) )
   {
     //ve oda ısınıyorsa
-    if ((T1<T2)&&(pos>step1))
+    if ((T1<T2+0.3)&&(pos>step1)) //+0.3 amacı -eşit olsa bile soğutmaya çalış
     {     
         pos=(pos-step1);   
         Serial.print("biraz sicak");Serial.println(pos);
@@ -317,7 +321,7 @@ if ((T2>(SetPoint)) && (currentMillis - previousMillis2 >= interval2) )
 if ( (T2<SetPoint) && (currentMillis - previousMillis2 >= interval2) )
   {
    //VE ODA SOĞUYORSA
-    if ((T1>T2)&&(pos<170))
+    if ((T1>T2-0.3)&&(pos<170))
     {
       pos = (pos+step1);
       Serial.print("biraz soguk");Serial.println(pos);
