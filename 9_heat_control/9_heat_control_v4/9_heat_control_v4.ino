@@ -1,3 +1,8 @@
+/*
+wifi modul-2 turuncu 3,5v,sarı pin10,beyaz pin11,gri ground  
+
+*/
+
 
 #include <Wire.h>
 #include <FaBoLCD_PCF8574.h>
