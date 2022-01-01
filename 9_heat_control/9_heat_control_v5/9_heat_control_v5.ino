@@ -246,7 +246,7 @@ void loop() {
 // lcd.print(temp);
 // lcd.setCursor(7,1);
 // lcd.print(hum);
-// Serial.println(temp);
+// Serial.println(temp); 
 // Serial.println(hum);
 Serial.print("pos");Serial.println(pos);
 Serial.print("T0");Serial.println(T0);
@@ -351,7 +351,7 @@ else if (T2<(SetPoint-4))
 //AKILLI KARŞILAŞTIRMA
 //eğer oda istenenden biraz sıcaksa
 
-if ((T2>(SetPoint)) && (currentMillis - previousMillis2 >= interval2) )
+if ((T2>(SetPoint)) && (currentMillis - previousMillis2 >= interval2)&&(T2 <(SetPoint+4)) )
   {
     //ve oda ısınıyorsa
     if ((T1<T2+0.3)&&(pos>step1)) //+0.3 amacı -eşit olsa bile soğutmaya çalış
@@ -367,7 +367,7 @@ if ((T2>(SetPoint)) && (currentMillis - previousMillis2 >= interval2) )
   }
 
   //eğer oda istenenden biraz soğuksa
-if ( (T2<SetPoint) && (currentMillis - previousMillis2 >= interval2) )
+if ( (T2<SetPoint) && (currentMillis - previousMillis2 >= interval2)&&(T2>(SetPoint-4)) )
   {
    //VE ODA SOĞUYORSA
     if ((T1>T2-0.3)&&(pos<170))
