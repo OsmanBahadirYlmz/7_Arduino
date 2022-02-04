@@ -1,4 +1,4 @@
-int Incoming_value = 0;                //Variable for storing Incoming_value
+  int Incoming_value = 0;                //Variable for storing Incoming_value
 void setup() 
 {
   Serial.begin(9600);         //Sets the data rate in bits per second (baud) for serial data transmission
