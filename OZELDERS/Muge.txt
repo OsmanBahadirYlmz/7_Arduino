@@ -1,0 +1,13 @@
+1-tanıtım buzzer
+tone notone
+notalar 
+game of thrones
+
+2-led button
+digitalWirite
+analogWrite,
+for loop led
+button-yarım kaldı-
+
+3-button/pot
+..

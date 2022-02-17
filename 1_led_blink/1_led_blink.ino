@@ -1,5 +1,5 @@
 void setup() {
-#define ledpin 3
+#define ledpin 5
 
   pinMode(ledpin,OUTPUT);
 }
@@ -7,8 +7,6 @@ void setup() {
 void loop() {
   digitalWrite(ledpin,HIGH);
   delay(200);
-  digitalWrite(ledpin,LOW);
-  delay(1500);
-  
+
 
 }
