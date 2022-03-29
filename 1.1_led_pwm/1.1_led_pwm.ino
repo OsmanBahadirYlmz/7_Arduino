@@ -1,5 +1,5 @@
 void setup() {
-#define ledpin 3
+#define ledpin 2
 
   pinMode(ledpin,OUTPUT);
 }
