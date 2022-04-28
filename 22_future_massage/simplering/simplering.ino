@@ -14,18 +14,18 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:   
    
-  for (int i=0; i<18;i++){
+  for (int i=0; i<2;i++){
    Serial.print("ring");Serial.println("");
    digitalWrite(motor1pin1, HIGH);
    digitalWrite(motor1pin2, LOW);
-   delay(70);
+   delay(3070);
    digitalWrite(motor1pin1, LOW);
    digitalWrite(motor1pin2, HIGH);
  
-  delay(70);
+  delay(3070);
 
   }
    digitalWrite(motor1pin1, LOW);
    digitalWrite(motor1pin2, LOW);
-  delay(3000);
+  delay(5000);
 }

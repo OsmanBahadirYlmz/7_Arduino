@@ -1,0 +1,9 @@
+son kontrol
+
+eeprom kayıtları
+km
+plaka
+sum distannce
+
+
+sum distance kaydetme süresini 15 dk yap

@@ -1,1 +1,13 @@
 kıvanç
+1.ders---1.5 saat 125 tl
+led uygulamaları
+
+
+2.ders---1.5 saat 200
+hcsr04
+
+3.ders--1.5 saat 200
+buzzer
+
+4.ders--1.5 saat ücretsiz
+genel tekrar-tinkercad
